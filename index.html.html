@@ -1,0 +1,1880 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENIUS 법 스테이블코인 자금세탁방지 프레임워크 분석 보고서</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --primary: #1f2937;
+            --secondary: #374151;
+            --accent: #d97706;
+            --muted: #6b7280;
+            --background: #f9fafb;
+            --surface: #ffffff;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .toc-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid #e5e7eb;
+            overflow-y: auto;
+            z-index: 1000;
+            padding: 2rem 1.5rem;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #d97706, transparent);
+            margin: 3rem 0;
+        }
+        
+        .citation {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .citation:hover {
+            color: #92400e;
+            text-decoration: underline;
+        }
+        
+        .chart-container {
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .insight-highlight {
+            background: linear-gradient(135deg, #fef3c7, #fed7aa);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        @media (max-width: 1024px) {
+            .toc-fixed {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .toc-fixed.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .hero-content .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .slide {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+        
+        .slide.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+  </head>
+
+  <body>
+    <!-- Table of Contents -->
+    <nav class="toc-fixed">
+      <div class="mb-8">
+        <h3 class="serif text-xl font-bold text-gray-900 mb-4">목차</h3>
+      </div>
+      <ul class="space-y-2 text-sm">
+        <li>
+          <a href="#executive-summary" class="block py-2 px-3 rounded hover:bg-gray-100 transition-colors">실행 요약</a>
+        </li>
+        <li>
+          <a href="#introduction" class="block py-2 px-3 rounded hover:bg-gray-100 transition-colors">1. 서론</a>
+        </li>
+        <li>
+          <a href="#legal-analysis" class="block py-2 px-3 rounded hover:bg-gray-100 transition-colors">2. 법률적 분석</a>
+        </li>
+        <li class="ml-4">
+          <a href="#genius-act" class="block py-1 px-3 rounded hover:bg-gray-100 transition-colors text-xs">2.1 GENIUS 법</a>
+        </li>
+        <li class="ml-4">
+          <a href="#other-jurisdictions" class="block py-1 px-3 rounded hover:bg-gray-100 transition-colors text-xs">2.2 주요 관할권</a>
+        </li>
+        <li class="ml-4">
+          <a href="#comparative-analysis" class="block py-1 px-3 rounded hover:bg-gray-100 transition-colors text-xs">2.3 비교 분석</a>
+        </li>
+        <li>
+          <a href="#technical-analysis" class="block py-2 px-3 rounded hover:bg-gray-100 transition-colors">3. 기술적 분석</a>
+        </li>
+        <li class="ml-4">
+          <a href="#technical-challenges" class="block py-1 px-3 rounded hover:bg-gray-100 transition-colors text-xs">3.1 기술적 도전</a>
+        </li>
+        <li class="ml-4">
+          <a href="#technical-solutions" class="block py-1 px-3 rounded hover:bg-gray-100 transition-colors text-xs">3.2 기술적 솔루션</a>
+        </li>
+        <li class="ml-4">
+          <a href="#technical-limitations" class="block py-1 px-3 rounded hover:bg-gray-100 transition-colors text-xs">3.3 한계 및 개선</a>
+        </li>
+        <li>
+          <a href="#critical-analysis" class="block py-2 px-3 rounded hover:bg-gray-100 transition-colors">4. 비판적 분석</a>
+        </li>
+        <li class="ml-4">
+          <a href="#framework-problems" class="block py-1 px-3 rounded hover:bg-gray-100 transition-colors text-xs">4.1 기존 프레임워크 문제</a>
+        </li>
+        <li class="ml-4">
+          <a href="#case-studies" class="block py-1 px-3 rounded hover:bg-gray-100 transition-colors text-xs">4.2 실제 사례</a>
+        </li>
+        <li class="ml-4">
+          <a href="#improvements" class="block py-1 px-3 rounded hover:bg-gray-100 transition-colors text-xs">4.3 개선 방향</a>
+        </li>
+        <li>
+          <a href="#conclusion" class="block py-2 px-3 rounded hover:bg-gray-100 transition-colors">5. 결론</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Hero Section -->
+      <section class="hero-section relative">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="container mx-auto px-8 py-16">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div class="slide">
+                <h1 class="serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+                  <span class="italic text-amber-300">GENIUS 법</span>
+                  <br>
+                  스테이블코인 자금세탁방지
+                  <br>
+                  <span class="text-3xl sm:text-4xl lg:text-5xl">프레임워크 분석</span>
+                </h1>
+                <p class="text-lg sm:text-xl text-gray-300 mb-8 leading-relaxed">
+                  미국 연방 규제의 이정표와 글로벌 AML/CFT 프레임워크의 기술적 구현에 대한 종합적 분석
+                </p>
+              </div>
+              <div class="slide">
+                <img src="https://kimi-img.moonshot.cn/pub/icon/spinner.svg" alt="블록체인 금융 보안 네트워크" class="w-full h-auto rounded-lg shadow-2xl opacity-90" size="large" aspect="wide" color="blue" style="photo" query="블록체인 금융 보안" referrerpolicy="no-referrer" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Executive Summary -->
+      <section id="executive-summary" class="py-16 bg-white">
+        <div class="container mx-auto px-8 max-w-4xl">
+          <div class="slide">
+            <h2 class="serif text-3xl font-bold mb-8 text-gray-900">실행 요약</h2>
+
+            <div class="insight-highlight mb-8">
+              <h3 class="font-bold text-lg mb-3 text-gray-900">핵심 발견</h3>
+              <p class="text-gray-700">
+                미국의 GENIUS 법은 스테이블코인 발행인을 '금융기관'으로 분류하여 기존 금융기관과 동일한 수준의 자금세탁방지(AML) 의무를 부과하고, 예비자산의 1:1 보유 및 투명한 관리를 의무화합니다. 이는 스테이블코인의 안정성과 신뢰성을 확보하고, 불법 금융 활동을 차단하기 위한 강력한 법적 기반을 제공합니다.
+              </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+              <div class="bg-gray-50 p-6 rounded-lg">
+                <h4 class="font-bold text-lg mb-3 text-gray-900">주요 법률적 특징</h4>
+                <ul class="space-y-2 text-sm text-gray-700">
+                  <li class="flex items-start">
+                    <i class="fas fa-check-circle text-amber-600 mt-1 mr-2"></i>
+                    PPSI(허가받은 지불 스테이블코인 발행인) 제도 도입
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check-circle text-amber-600 mt-1 mr-2"></i>
+                    은행 비밀법(BSA) 적용 및 AML/CFT 의무 부과
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check-circle text-amber-600 mt-1 mr-2"></i>
+                    1:1 예비자산 보유 의무화
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-check-circle text-amber-600 mt-1 mr-2"></i>
+                    OFAC 제재 프로그램 준수 요구
+                  </li>
+                </ul>
+              </div>
+
+              <div class="bg-gray-50 p-6 rounded-lg">
+                <h4 class="font-bold text-lg mb-3 text-gray-900">기술적 구현 과제</h4>
+                <ul class="space-y-2 text-sm text-gray-700">
+                  <li class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-amber-600 mt-1 mr-2"></i>
+                    실제 신원과 온체인 주소 연결 문제
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-amber-600 mt-1 mr-2"></i>
+                    다중 블록체인 간 거래 추적 복잡성
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-amber-600 mt-1 mr-2"></i>
+                    탈중앙화 스테이블코인 규제 한계
+                  </li>
+                  <li class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-amber-600 mt-1 mr-2"></i>
+                    개인정보 보호와 규제 준수 균형
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed">
+              기술적으로는 온체인 모니터링, 블록체인 분석, AI 기반 리스크 감지 등이 핵심 솔루션이며, 글로벌 규제 불일치와 기술적 한계는 여전히 해결해야 할 과제입니다. 본 보고서는 이러한 법률적·기술적 측면을 종합적으로 분석하고, 향후 개선 방향을 제시합니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Introduction -->
+      <section id="introduction" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-8 max-w-4xl">
+          <div class="slide">
+            <h2 class="serif text-3xl font-bold mb-8 text-gray-900">1. 서론: 스테이블코인과 자금세탁방지의 중요성</h2>
+
+            <div class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">1.1 스테이블코인의 정의와 특성</h3>
+
+              <p class="text-gray-700 mb-6 leading-relaxed">
+                스테이블코인(Stablecoin)은 가치의 안정성을 핵심 목표로 하는 특수한 형태의 암호화폐로, 기존의 비트코인이나 이더리움과 같은 고변동성 암호자산과 구별됩니다. 이들은 법정화폐, 상품, 또는 다른 암호자산에 고정하거나 알고리즘에 의존하여 가치를 안정시킴으로써, 높은 변동성을 특징으로 하는 디지털 자산 시장 내에서 안정적인 가치의 기준점을 제공합니다 <a href="https://cn.cointelegraph.com/news/under-global-regulatory-scrutiny-compliance-risks-and-the-path-forward-for-stablecoins" class="citation">[77]</a>.
+              </p>
+
+              <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                  <h4 class="font-bold text-lg mb-3 text-gray-900">
+                    <i class="fas fa-dollar-sign text-amber-600 mr-2"></i>
+                    법정화폐 담보
+                  </h4>
+                  <p class="text-sm text-gray-700">
+                    미국 달러와 1:1 비율로 고정되며, 현금이나 단기 국채와 같은 저위험 자산을 예비자산으로 보유합니다. USDT, USDC가 대표적입니다.
+                  </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                  <h4 class="font-bold text-lg mb-3 text-gray-900">
+                    <i class="fas fa-coins text-amber-600 mr-2"></i>
+                    암호화폐 담보
+                  </h4>
+                  <p class="text-sm text-gray-700">
+                    다른 암호자산을 초과 담보로 하여 발행되며, 스마트 계약을 통해 담보 비율을 자동으로 조정합니다. DAI가 대표적입니다.
+                  </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                  <h4 class="font-bold text-lg mb-3 text-gray-900">
+                    <i class="fas fa-cogs text-amber-600 mr-2"></i>
+                    알고리즘 기반
+                  </h4>
+                  <p class="text-sm text-gray-700">
+                    실질적인 담보 자산이 없이, 알고리즘을 통해 공급과 수요를 조절하여 가치를 유지합니다. UST가 대표적인 사례입니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">1.2 스테이블코인의 자금세탁 리스크</h3>
+
+              <p class="text-gray-700 mb-6 leading-relaxed">
+                스테이블코인의 가격 안정성과 전 세계적인 접근성은 합법적인 금융 혁신을 가능하게 하는 동시에, <strong>자금세탁(AML) 및 테러리스트 자금 지원(CFT)</strong> 과 같은 불법 금융 활동에 악용될 수 있는 중대한 위험 요소로 작용합니다 <a href="https://www.sanctions.io/blog/aml-compliance-risk-in-the-stablecoins-space" class="citation">[94]</a>. 특히, 변동성이 큰 다른 암호화폐와 달리, 스테이블코인은 자금을 이동시키면서도 자산 가치를 안정적으로 유지할 수 있게 해주기 때문에, 불법 행위자들에게 매우 매력적인 도구로 여겨집니다.
+              </p>
+
+              <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">주요 자금세탁 리스크 요인</h4>
+                <div class="grid md:grid-cols-2 gap-4">
+                  <div class="flex items-start">
+                    <i class="fas fa-user-secret text-amber-600 mt-1 mr-3"></i>
+                    <div>
+                      <h5 class="font-semibold text-gray-800">익명성과 가명성</h5>
+                      <p class="text-sm text-gray-600">사용자의 실제 신원을 숨기고, 자금의 출처와 최종 목적지를 추적하는 것을 어렵게 만듭니다.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <i class="fas fa-network-wired text-amber-600 mt-1 mr-3"></i>
+                    <div>
+                      <h5 class="font-semibold text-gray-800">DeFi 플랫폼 통합</h5>
+                      <p class="text-sm text-gray-600">중앙 집중식 통제가 없는 생태계를 만들어, 규제 기관의 감독을 받지 않는 환경에서 자금세탁이 가능합니다.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <i class="fas fa-exchange-alt text-amber-600 mt-1 mr-3"></i>
+                    <div>
+                      <h5 class="font-semibold text-gray-800">빠른 전환성</h5>
+                      <p class="text-sm text-gray-600">계층화(layering) 활동에 매우 적합하며, 여러 자산군을 거쳐 빠르게 거래를 진행할 수 있습니다.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start">
+                    <i class="fas fa-shield-alt text-amber-600 mt-1 mr-3"></i>
+                    <div>
+                      <h5 class="font-semibold text-gray-800">약한 KYC 프로토콜</h5>
+                      <p class="text-sm text-gray-600">일부 발행인과 거래소의 부실한 고객 확인 절차는 불법 행위자들의 시스템 접근을 용이하게 합니다.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">1.3 보고서의 목적과 구성</h3>
+
+              <p class="text-gray-700 mb-6 leading-relaxed">
+                본 보고서는 미국의 <strong>GENIUS 법</strong>을 중심으로, 스테이블코인과 관련된 자금세탁방지(AML) 프레임워크에 대한 종합적인 법률적 및 기술적 분석을 제공하는 것을 목적으로 합니다. 스테이블코인이 금융 시스템에 미치는 영력이 커지고 있는 가운데, 이를 둘러싼 규제 환경은 여전히 진화하고 있으며, 특히 AML/CFT 측면에서의 명확한 가이드라인이 절실히 요구되고 있습니다.
+              </p>
+
+              <div class="bg-white p-6 rounded-lg shadow-sm">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">보고서 구성</h4>
+                <div class="space-y-3">
+                  <div class="flex items-start">
+                    <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-1 rounded mr-3 mt-0.5">2장</span>
+                    <p class="text-sm text-gray-700"><strong>법률적 분석</strong>: GENIUS 법의 주요 내용과 홍콩, EU 등 주요 관할권의 규제 비교</p>
+                  </div>
+                  <div class="flex items-start">
+                    <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-1 rounded mr-3 mt-0.5">3장</span>
+                    <p class="text-sm text-gray-700"><strong>기술적 분석</strong>: AML 프레임워크 구현의 기술적 도전과 핵심 솔루션</p>
+                  </div>
+                  <div class="flex items-start">
+                    <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-1 rounded mr-3 mt-0.5">4장</span>
+                    <p class="text-sm text-gray-700"><strong>비판적 분석</strong>: 기존 프레임워크의 문제점과 개선 방향</p>
+                  </div>
+                  <div class="flex items-start">
+                    <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-1 rounded mr-3 mt-0.5">5장</span>
+                    <p class="text-sm text-gray-700"><strong>결론</strong>: 주요 분석 결과 요약 및 미래 전망</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Legal Analysis -->
+      <section id="legal-analysis" class="py-16 bg-white">
+        <div class="container mx-auto px-8 max-w-4xl">
+          <div class="slide">
+            <h2 class="serif text-3xl font-bold mb-8 text-gray-900">2. 법률적 분석: GENIUS 법과 주요 관할권의 AML 프레임워크</h2>
+
+            <div id="genius-act" class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">2.1 미국 GENIUS 법</h3>
+
+              <div class="insight-highlight mb-6">
+                <h4 class="font-bold text-lg mb-3 text-gray-900">GENIUS 법의 의의</h4>
+                <p class="text-gray-700">
+                  2025년 7월 17일 통과된 <strong>Guiding and Enabling National Innovation for U.S. Stablecoins (GENIUS) Act</strong>는 미국에서 처음으로 연방 수준의 스테이블코인 규제 프레임워크를 도입하는 이정표적인 법률입니다. 이 법안은 소비자 보호, 금융 안정성, 국가 안보 및 자금세탁방지(AML) 규정 준수를 목표로 합니다.
+                </p>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">2.1.1 주요 목표와 핵심 조항</h4>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                  <div class="bg-gray-50 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-bullseye text-amber-600 mr-2"></i>
+                      주요 목표
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• 소비자 보호 강화</li>
+                      <li>• 금융 안정성 확보</li>
+                      <li>• 국가 안보 수호</li>
+                      <li>• AML/CFT 규정 준수</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-gray-50 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-gavel text-amber-600 mr-2"></i>
+                      규제 대상
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• "지불 스테이블코인" 발행자</li>
+                      <li>• 디지털 자산 서비스 제공자</li>
+                      <li>• PPSI(허가받은 발행인)</li>
+                      <li>• 연방 및 주 정부 라이선스</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <p class="text-gray-700 leading-relaxed">
+                  GENIUS 법은 "지불 스테이블코인"을 디지털 자산으로 정의하며, 이는 지불 또는 결제 수단으로 사용되도록 설계되었고, 발행자가 이를 고정된 금전적 가치로 전환, 상환 또는 재구매할 의무가 있으며, 고정된 금전적 가치에 대해 안정적인 가치를 유지한다고 표현합니다. 이 법안은 스테이블코인 발행자가 <strong>"허가받은 지불 스테이블코인 발행인(PPSI)"</strong> 이어야만 미국 내에서 스테이블코인을 발행할 수 있도록 규정하고 있습니다.
+                </p>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">2.1.2 PPSI의 AML/CFT 의무</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  GENIUS 법의 가장 중요한 측면 중 하나는 허가받은 지불 스테이블코인 발행인(PPSI)을 <strong>《은행 비밀법》(Bank Secrecy Act, BSA)</strong> 에 따른 "금융 기관"으로 간주하는 것입니다. 이는 PPSI에게 기존의 은행 및 금융 기관과 동일한 수준의 AML/CFT 의무를 부여합니다.
+                </p>
+
+                <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                  <h5 class="font-semibold text-gray-800 mb-4">주요 AML/CFT 의무 사항</h5>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">핵심 의무</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 고객 신원 확인 프로그램(CIP) 구현</li>
+                        <li>• 의심스러운 활동 모니터링 및 보고</li>
+                        <li>• 거래 기록 보관 의무</li>
+                        <li>• OFAC 제재 프로그램 준수</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">기술적 능력</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 스테이블코인 압수/동결/소각 능력</li>
+                        <li>• 블록체인 분석 플랫폼 통합</li>
+                        <li>• 실시간 거래 모니터링</li>
+                        <li>• 제재 대상 주소 식별</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">2.1.3 예비자산 관리 및 상환 메커니즘</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  GENIUS 법은 스테이블코인의 가치 안정성과 신뢰성을 보장하기 위해 예비자산(reserve assets) 관리에 대한 엄격한 규정을 두고 있습니다. 이 법안은 PPSI가 발행한 모든 스테이블코인에 대해 <strong>1:1 비율의 예비자산</strong>을 보유하도록 의무화하고 있습니다.
+                </p>
+
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-6 mb-4">
+                  <h5 class="font-semibold text-gray-800 mb-2">예비자산 구성 가능 자산</h5>
+                  <ul class="space-y-1 text-sm text-gray-700">
+                    <li>• 현금 및 현금성 자산</li>
+                    <li>• 미국 국채</li>
+                    <li>• 담보 부족이 없는 담보채권</li>
+                    <li>• 규제 기관이 승인한 저위험 자산</li>
+                  </ul>
+                </div>
+
+                <p class="text-gray-700 leading-relaxed">
+                  더 나아가, GENIUS 법은 PPSI가 파산할 경우를 대비하여 스테이블코인 보유자의 권리를 보호하는 특별한 규정을 두고 있습니다. 법안에 따르면, <strong>스테이블코인 보유자는 발행자의 예비자산에 대해 다른 채권자보다 우선적인 청구권</strong>을 갖습니다.
+                </p>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900">2.1.4 제재 및 집행 조치</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  GENIUS 법은 스테이블코인이 불법 활동에 사용되는 것을 방지하기 위한 강력한 제재 및 집행 조치를 포함하고 있습니다. 이 법안은 PPSI가 미국 재무부 외국자산통제국(OFAC)의 제재 프로그램을 준수하도록 명시적으로 요구합니다.
+                </p>
+
+                <div class="bg-red-50 border border-red-200 p-6 rounded-lg">
+                  <h5 class="font-semibold text-red-800 mb-3">제재 준수 요구사항</h5>
+                  <ul class="space-y-2 text-sm text-red-700">
+                    <li class="flex items-start">
+                      <i class="fas fa-ban text-red-600 mt-1 mr-2"></i>
+                      OFAC SDN 명단 및 기타 제재 명단에 대한 실시간 선별
+                    </li>
+                    <li class="flex items-start">
+                      <i class="fas fa-ban text-red-600 mt-1 mr-2"></i>
+                      제재 대상과의 거래 차단 의무
+                    </li>
+                    <li class="flex items-start">
+                      <i class="fas fa-ban text-red-600 mt-1 mr-2"></i>
+                      합법적 명령에 따른 스테이블코인 압수/동결/소각 능력
+                    </li>
+                    <li class="flex items-start">
+                      <i class="fas fa-ban text-red-600 mt-1 mr-2"></i>
+                      AML 및 제재 준수 프로그램 인증서 제출 (180일 이내, 이후 매년)
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div id="other-jurisdictions" class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">2.2 기타 주요 관할권의 AML 프레임워크</h3>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">2.2.1 홍콩의 스테이블코인 규제</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  홍콩은 2025년 8월 1일부터 시행되는 <strong>《스테이블코인 조례》(Stablecoins Ordinance)</strong> 를 통해 스테이블코인에 대한 포괄적인 규제 프레임워크를 도입했습니다. 이 조례는 홍콩 금융관리국(HKMA)이 스테이블코인 발행자에 대한 라이선스 제도를 운영하도록 합니다.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-6">
+                  <h5 class="font-semibold text-gray-800 mb-3">홍콩 규제의 핵심 특징</h5>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">기술적 요구사항</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 블록체인 분석 기술 채택</li>
+                        <li>• 리스크 기반 거래 모니터링 시스템</li>
+                        <li>• 지갑 주소 스크리닝</li>
+                        <li>• 실시간 감시 기능</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">규제 준수</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• FATF 여행 규칙 준수</li>
+                        <li>• AML/CFT 의무 강화</li>
+                        <li>• HKMA 라이선스 요구</li>
+                        <li>• 점진적 규제 접근</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900">2.2.2 유럽연합의 MiCA 규정</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  유럽연합(EU)은 <strong>《암호자산 시장 규정》(Markets in Crypto-Assets Regulation, MiCA)</strong> 을 통해 유럽 전역에 걸쳐 통일된 암호자산 규제 프레임워크를 구축했습니다. MiCA는 스테이블코인을 "전자화폐 토큰(Electronic Money Token, EMT)"과 "자산 참조 토큰(Asset-Referenced Token, ART)"으로 구분하여 제합니다.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div class="bg-gray-50 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-euro-sign text-blue-600 mr-2"></i>
+                      EMT (전자화폐 토큰)
+                    </h5>
+                    <ul class="space-y-1 text-sm text-gray-700">
+                      <li>• 단일 법정화폐로 지원</li>
+                      <li>• 전자화폐 기관 또는 신용 기관만 발행 가능</li>
+                      <li>• 엄격한 자본 요건</li>
+                      <li>• 소비자 보호 강화</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-gray-50 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
+                      ART (자산 참조 토큰)
+                    </h5>
+                    <ul class="space-y-1 text-sm text-gray-700">
+                      <li>• 다양한 자산 바스켓으로 지원</li>
+                      <li>• EU 내 설립 및 규제 기관 승인 필요</li>
+                      <li>• 투자자 정보 공시 의무</li>
+                      <li>• 위험 관리 절차 의무화</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="comparative-analysis" class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">2.3 법률적 요구사항 비교 분석</h3>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">2.3.1 KYC/KYT 요구사항 비교</h4>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full bg-white border border-gray-200 rounded-lg">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관할권</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC 요구사항</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYT 요구사항</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">특징</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                      <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">미국 (GENIUS)</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">고객 신원 확인 프로그램(CIP) 의무화</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">블록체인 분석 통한 실시간 모니터링</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">BSA 금융기관으로 간주</td>
+                      </tr>
+                      <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">홍콩</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">고객 신원 확인 및 지속적 모니터링</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">블록체인 분석 기술 활용 의무화</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">기술적 솔루션 강조</td>
+                      </tr>
+                      <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">EU (MiCA)</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">고객 신원 확인 의무화</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">트래블 룰 준수 (특정 금액 이상)</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">여권 제도 도입</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900">2.3.2 라이선스 및 등록 요구사항</h4>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-flag-usa text-amber-600 mr-2"></i>
+                      미국
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• PPSI (허가받은 지불 스테이블코인 발행인)</li>
+                      <li>• 연방 및 주 정부 이중 라이선스 체계</li>
+                      <li>• OCC 또는 주 정부 규제</li>
+                      <li>• 실질적으로 유사한 AML/CFT 요구</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-building text-blue-600 mr-2"></i>
+                      홍콩
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• HKMA 라이선스 의무화</li>
+                      <li>• 중앙 집중식 규제 체계</li>
+                      <li>• 단계적 라이선스 발급</li>
+                      <li>• 엄격한 AML/CFT 요구사항</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-globe-europe text-blue-600 mr-2"></i>
+                      EU
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• 국가 감독 기관 라이선스</li>
+                      <li>• 여권 제도 도입</li>
+                      <li>• 통합된 유럽 시장 접근</li>
+                      <li>• ESMA 및 EBA 규제</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Technical Analysis -->
+      <section id="technical-analysis" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-8 max-w-4xl">
+          <div class="slide">
+            <h2 class="serif text-3xl font-bold mb-8 text-gray-900">3. 기술적 분석: AML 프레임워크 구현을 위한 기술적 솔루션</h2>
+
+            <div id="technical-challenges" class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">3.1 기술적 도전과제</h3>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.1.1 실제 신원과 온체인 주소의 연결</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인의 AML 프레임워크를 구현하는 데 있어 가장 근본적인 기술적 도전과제는 <strong>실제 세계의 신원(Real-world Identity)</strong> 과 <strong>블록체인 상의 익명 또는 가명 주소(On-chain Address)</strong> 를 연결하는 것입니다. 스테이블코인 거래는 공개 원장에 기록되지만, 거래에 사용되는 주소는 일반적으로 사용자의 실제 이름, 주소 등의 개인 식별 정보(PII)와 직접적으로 연결되어 있지 않습니다.
+                </p>
+
+                <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                  <h5 class="font-semibold text-gray-800 mb-3">주요 기술적 어려움</h5>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">가명성 문제</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 여러 지갑 주소 생성 가능</li>
+                        <li>• 자금 분산 이동으로 추적 어려움</li>
+                        <li>• 믹싱 서비스로 출처 은폐</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">기술적 한계</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 기존 AML 도구의 한계</li>
+                        <li>• 프라이버시 코인의 활용</li>
+                        <li>• 실시간 추적의 어려움</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.1.2 다중 블록체인 간 거래 추적</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  현재의 암호자산 생태계는 단일 블록체인에 국한되지 않고, 수많은 서로 다른 블록체인 네트워크가 존재하는 <strong>멀티체인(multi-chain)</strong> 환경으로 발전하고 있습니다. 스테이블코인 역시 이더리움, 솔라나, 트론 등 다양한 블록체인에서 발행되고 유통되고 있으며, 사용자들은 <strong>크로스체인 브릿지(cross-chain bridges)</strong> 를 통해 자산을 한 체인에서 다른 체인으로 이동시킬 수 있습니다.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-6">
+                  <h5 class="font-semibold text-gray-800 mb-3">멀티체인 환경의 도전 과제</h5>
+                  <div class="space-y-3">
+                    <div class="flex items-start">
+                      <i class="fas fa-network-wired text-blue-600 mt-1 mr-3"></i>
+                      <div>
+                        <h6 class="font-medium text-gray-700">독립적인 원장 시스템</h6>
+                        <p class="text-sm text-gray-600">각 블록체인은 독립적인 원장을 가지고 있으며, 서로 다른 합의 메커니즘과 데이터 구조를 사용합니다.</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <i class="fas fa-exchange-alt text-blue-600 mt-1 mr-3"></i>
+                      <div>
+                        <h6 class="font-medium text-gray-700">브릿지의 다양성</h6>
+                        <p class="text-sm text-gray-600">크로스체인 브릿지가 다양한 방식으로 구현되어 있어, 통합적인 추적이 어렵습니다.</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <i class="fas fa-search text-blue-600 mt-1 mr-3"></i>
+                      <div>
+                        <h6 class="font-medium text-gray-700">분석 도구의 한계</h6>
+                        <p class="text-sm text-gray-600">기존의 블록체인 분석 도구는 주로 단일 체인에 특화되어 있습니다.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.1.3 시스템적 리스크 모델링</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인은 금융 시스템과의 연결성이 높아지면서, 시스템적 리스크(Systemic Risk)의 원인이 될 수 있습니다. 특히, 대규모 스테이블코인의 가치가 붕괴되거나, 대규모 환매 요청(런)이 발생할 경우, 이는 연쇄적으로 다른 금융 시장에 영향을 미칠 수 있습니다.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                      시스템적 리스크 요인
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• 예비자산 구성 및 규모</li>
+                      <li>• 거래량 및 유동성</li>
+                      <li>• 홀더 분포 및 집중도</li>
+                      <li>• DeFi 프로토콜과의 연결성</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-chart-line text-blue-600 mr-2"></i>
+                      분석 방법론
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• 스트레스 테스트 (Stress Testing)</li>
+                      <li>• 네트워크 분석 (Network Analysis)</li>
+                      <li>• 시나리오 분석 (Scenario Analysis)</li>
+                      <li>• 리스크 모델링 (Risk Modeling)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="technical-solutions" class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">3.2 핵심 기술적 솔루션</h3>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.2.1 온체인 모니터링 및 분석 도구</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인의 AML/CFT 프레임워크를 실질적으로 구현하기 위한 핵심 기술은 <strong>온체인 모니터링 및 분석 도구</strong>입니다. 전통적인 금융 시스템에서 사용되던 레거시 거래 모니터링 도구는 블록체인의 특성을 감당할 수 없기 때문에, 스테이블코인 발행인은 블록체인 분석 플랫폼을 통합해야 합니다 <a href="https://guidehouse.com/insights/financial-services/2025/stablecoin-oversight-genius-act" class="citation">[162]</a>.
+                </p>
+
+                <div class="grid md:grid-cols-3 gap-6 mb-6">
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg text-center">
+                    <i class="fas fa-shield-alt text-3xl text-blue-600 mb-3"></i>
+                    <h5 class="font-semibold text-gray-800 mb-2">Chainalysis</h5>
+                    <p class="text-sm text-gray-600">실시간 거래 감시, 지갑 속성 부여, AML 스크리닝 도구 제공</p>
+                  </div>
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg text-center">
+                    <i class="fas fa-search text-3xl text-green-600 mb-3"></i>
+                    <h5 class="font-semibold text-gray-800 mb-2">Elliptic</h5>
+                    <p class="text-sm text-gray-600">크로스체인 감지, 자동화된 AML 워크플로우, 위험 노출 감소 <a href="https://www.elliptic.co/" class="citation">[150]</a>
+                    </p>
+                  </div>
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg text-center">
+                    <i class="fas fa-eye text-3xl text-purple-600 mb-3"></i>
+                    <h5 class="font-semibold text-gray-800 mb-2">TRM Labs</h5>
+                    <p class="text-sm text-gray-600">블록체인 데이터 분석, 위험 평가, 규제 준수 솔루션</p>
+                  </div>
+                </div>
+
+                <div class="insight-highlight">
+                  <h5 class="font-bold text-gray-900 mb-2">홍콩 HKMA의 요구사항</h5>
+                  <p class="text-gray-700">
+                    홍콩의 HKMA는 발행인이 사용하는 블록체인 분석 솔루션에 대한 실사를 수행하고, 그 품질과 효과성, 데이터의 적절성 및 범위를 고려할 것을 요구하고 있습니다 <a href="https://www.elliptic.co/blog/hong-kongs-stablecoin-regulatory-regime-goes-live-with-robust-aml-cft-standards" class="citation">[136]</a>. 이는 기술 솔루션의 신뢰성과 정확성이 규제 준수의 핵심 요소임을 강조하는 것입니다.
+                  </p>
+                </div>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.2.2 그래프 기술 (Graph Technology)의 활용</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  그래프 기술(Graph Technology)은 스테이블코인의 AML/CFT 프레임워크에서 매우 강력한 도구로 활용될 수 있습니다. 블록체인 거래는 본질적으로 그래프 구조를 가지고 있습니다. 각 지갑 주소는 노드(node)로, 각 거래는 엣지(edge)로 표현될 수 있습니다.
+                </p>
+
+                <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                  <h5 class="font-semibold text-gray-800 mb-4">그래프 기술의 주요 활용 분야</h5>
+                  <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">
+                        <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
+                        필 체인(Peel Chain) 탐지
+                      </h6>
+                      <p class="text-sm text-gray-600 mb-3">큰 금액의 자금을 여러 개의 작은 거래로 나누어 연쇄적으로 전송하는 자금세탁 기법을 식별합니다.</p>
+
+                      <h6 class="font-medium text-gray-700 mb-2">
+                        <i class="fas fa-users text-green-600 mr-2"></i>
+                        엔티티 해결(Entity Resolution)
+                      </h6>
+                      <p class="text-sm text-gray-600">서로 다른 지갑 주소들이 실제로는 동일한 개체나 조직에 의해 제어되고 있을 가능성을 파악합니다.</p>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">
+                        <i class="fas fa-network-wired text-purple-600 mr-2"></i>
+                        커뮤니티 탐지(Community Detection)
+                      </h6>
+                      <p class="text-sm text-gray-600 mb-3">불법 활동과 관련된 지갑들이 형성하는 네트워크를 식별하여 범죄 조직의 구조를 파악합니다.</p>
+
+                      <h6 class="font-medium text-gray-700 mb-2">
+                        <i class="fas fa-route text-orange-600 mr-2"></i>
+                        자금 흐름 시각화
+                      </h6>
+                      <p class="text-sm text-gray-600">복잡한 자금 흐름을 시각적으로 표현하여 숨겨진 관계와 패턴을 발견합니다.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.2.3 스마트 계약을 활용한 컴플라이언스 메커니즘</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스마트 계약(Smart Contract)은 블록체인 상에서 자동으로 실행되는 계약으로, 스테이블코인의 AML/CFT 프레임워크에 혁신적인 솔루션을 제공할 수 있습니다. 스마트 계약을 활용하면, 특정 규칙이나 조건을 사전에 프로그래밍하여, 거래가 발생할 때 자동으로 컴플라이언스를 검증하고 실행할 수 있습니다.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div class="bg-green-50 border border-green-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-green-800 mb-3">
+                      <i class="fas fa-ban text-green-600 mr-2"></i>
+                      제재 주소 차단
+                    </h5>
+                    <ul class="space-y-1 text-sm text-green-700">
+                      <li>• OFAC SDN 명단 자동 업데이트</li>
+                      <li>• 거래 발생 시 실시간 주소 확인</li>
+                      <li>• 제재 주소와의 거래 자동 거부/동결</li>
+                      <li>• 인위적 오류 감소 및 효율성 향상</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-blue-800 mb-3">
+                      <i class="fas fa-user-check text-blue-600 mr-2"></i>
+                      KYC/AML 검증
+                    </h5>
+                    <ul class="space-y-1 text-sm text-blue-700">
+                      <li>• KYC 절차 완료 여부 자동 확인</li>
+                      <li>• AML 리스크 평가 자동 실행</li>
+                      <li>• 허가된 사용자만 참여 가능</li>
+                      <li>• 불법 행위자 진입 사전 차단</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.2.4 AI/ML 기반 리스크 감지</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  인공지능(AI)과 머신러닝(ML) 기술은 스테이블코인의 AML/CFT 프레임워크에서 점점 더 중요한 역할을 하고 있습니다. 이들 기술은 방대한 양의 블록체인 거래 데이터를 분석하여, 인간이나 전통적인 규칙 기반 시스템으로는 탐지하기 어려운 복잡하고 미묘한 자금세탁 패턴을 식별하는 데 탁월합니다 <a href="https://coinlaw.io/cryptocurrency-anti-money-laundering-statistics/" class="citation">[143]</a>.
+                </p>
+
+                <div class="insight-highlight">
+                  <h5 class="font-bold text-gray-900 mb-3">AI/ML 기술의 효과</h5>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">성능 향상</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• AI 기반 KYC 도구로 신원 확인 시간 42% 단축</li>
+                        <li>• 생체 인식 KYC로 특정 지역 승인률 35% 향상</li>
+                        <li>• 고급 자금세탁 기법 자동 탐지</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">규제 지원</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• FinCEN의 혁신적 AML 지침 개발 지원</li>
+                        <li>• 블록체인 분석 및 머신러닝 기법 장려</li>
+                        <li>• 규제 준수 효율성 및 정확성 향상</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="technical-limitations" class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">3.3 기술적 한계 및 개선 방향</h3>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.3.1 기술 구현의 비용 및 복잡성</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인 AML/CFT 프레임워크를 위한 기술적 솔루션의 구현은 상당한 비용과 복잡성을 수반합니다. 특히, 실시간 온체인 모니터링, 블록체인 분석, AI/ML 기반 리스크 감지 시스템을 구축하고 운영하기 위해서는 막대한 초기 투자와 지속적인 운영 비용이 필요합니다.
+                </p>
+
+                <div class="bg-red-50 border border-red-200 p-6 rounded-lg">
+                  <h5 class="font-semibold text-red-800 mb-3">주요 비용 요인</h5>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">경제적 비용</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 초기 시스템 구축 비용</li>
+                        <li>• 지속적인 운영 및 유지보수 비용</li>
+                        <li>• 전문 인력 고용 비용</li>
+                        <li>• 규모에 따른 비용 추정: 약 2.5억 파운드 <a href="http://www.fca.org.uk/publication/consultation/cp25-14.pdf" class="citation">[152]</a>
+                        </li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">기술적 복잡성</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 다양한 블록체인 네트워크 호환성</li>
+                        <li>• 기존 레거시 시스템과의 통합</li>
+                        <li>• 지속적으로 진화하는 규제 요구사항 대응</li>
+                        <li>• 실시간 정보 전송 기술적 어려움</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.3.2 개인정보 보호와 규제 준수의 균형</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인의 AML/CFT 규제 준수와 개인정보 보호 사이의 균형을 맞추는 것은 매우 민감하고 복잡한 문제입니다. 트래블 룰과 같은 규정은 거래 당사자의 개인정보를 수집하고 전송하도록 요구하는데, 이는 블록체인의 본질적인 가명성(pseudonymity)과 충돌할 수 있습니다.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div class="bg-yellow-50 border border-yellow-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-yellow-800 mb-3">
+                      <i class="fas fa-shield-alt text-yellow-600 mr-2"></i>
+                      개인정보 보호 요구사항
+                    </h5>
+                    <ul class="space-y-2 text-sm text-yellow-700">
+                      <li>• 강력한 암호화 알고리즘 사용</li>
+                      <li>• 정보 보안 통제 구현</li>
+                      <li>• 무단 접근, 공개, 변경 방지</li>
+                      <li>• GDPR 등 데이터 프라이버시 규정 준수</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-blue-800 mb-3">
+                      <i class="fas fa-balance-scale text-blue-600 mr-2"></i>
+                      균형 맞추기 전략
+                    </h5>
+                    <ul class="space-y-2 text-sm text-blue-700">
+                      <li>• 영지식 증명(Zero-Knowledge Proofs) 활용</li>
+                      <li>• 최소한의 개인정보 수집</li>
+                      <li>• 안전한 데이터 관리 및 제한적 공유</li>
+                      <li>• 규제 목표와 프라이버시 보호의 조화</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900">3.3.3 완전히 탈중앙화된 스테이블코인의 규제 어려움</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  현재 대부분의 규제 프레임워크는 중앙화된 스테이블코인 발행인을 대상으로 하고 있습니다. 그러나, 완전히 탈중앙화된 스테이블코인(Decentralized Stablecoin)의 경우, 규제 적용이 매우 어렵습니다. 대표적인 예로 MakerDAO의 DAI가 있습니다.
+                </p>
+
+                <div class="bg-gray-100 border border-gray-300 p-6 rounded-lg">
+                  <h5 class="font-semibold text-gray-800 mb-3">탈중앙화 스테이블코인의 규제 난제</h5>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">구조적 문제</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 중앙화된 발행인이 없음</li>
+                        <li>• KYC/AML 의무 부과 대상 불명확</li>
+                        <li>• 예비자산 관리 및 감사 불가능</li>
+                        <li>• 스마트 계약 불변성으로 인한 제한</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">규제 방안 모색</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 인터페이스 규제 (거래소, DeFi 플랫폼)</li>
+                        <li>• 거버넌스 토큰 규제</li>
+                        <li>• 간접적인 리스크 관리 방안</li>
+                        <li>• 새로운 규제 패러다임 필요</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Critical Analysis -->
+      <section id="critical-analysis" class="py-16 bg-white">
+        <div class="container mx-auto px-8 max-w-4xl">
+          <div class="slide">
+            <h2 class="serif text-3xl font-bold mb-8 text-gray-900">4. 비판적 분석: 기존 AML 프레임워크의 문제점과 개선 방향</h2>
+
+            <div id="framework-problems" class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">4.1 기존 프레임워크의 주요 문제점</h3>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">4.1.1 글로벌 규제의 불일치</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  현재 전 세계의 스테이블코인 AML 프레임워크는 관할권마다 상이한 접근 방식을 취하고 있어, <strong>글로벌 규제의 불일치</strong>가 가장 큰 문제점 중 하나로 지적되고 있습니다. 미국의 GENIUS 법, 유럽연합의 MiCA, 홍콩의 스테이블코인 조례 등은 모두 AML/CFT를 핵심 요소로 포함하고 있지만, 구체적인 라이선스 체계, 예비자산 관리 기준, KYC/KYT 요구사항, 그리고 제재 및 집행 조치에서 상당한 차이를 보이고 있습니다.
+                </p>
+
+                <div class="bg-red-50 border-l-4 border-red-400 p-6 mb-4">
+                  <h5 class="font-semibold text-red-800 mb-3">규제 불일치의 주요 문제</h5>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">규제 차익 (Regulatory Arbitrage)</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 규제가 느슨한 관할권 이용 가능</li>
+                        <li>• 자금세탁 활동 집중 위험</li>
+                        <li>• 글로벌 금융 시스템 무결성 해침</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">사업자 부담</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 복잡하고 비용이 많이 드는 준수 시스템 필요</li>
+                        <li>• 중소기업 진입 장벽 증가</li>
+                        <li>• 시장 혁신과 경쟁 제한</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                  <h5 class="font-semibold text-gray-800 mb-3">주요 관할권 규제 차이 비교</h5>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="border-b border-gray-200">
+                          <th class="px-4 py-2 text-left font-medium text-gray-700">비교 항목</th>
+                          <th class="px-4 py-2 text-left font-medium text-gray-700">미국 (GENIUS)</th>
+                          <th class="px-4 py-2 text-left font-medium text-gray-700">홍콩</th>
+                          <th class="px-4 py-2 text-left font-medium text-gray-700">EU (MiCA)</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-200">
+                        <tr>
+                          <td class="px-4 py-2 font-medium text-gray-700">트래블 룰 적용</td>
+                          <td class="px-4 py-2 text-gray-600">모든 거래에 적용</td>
+                          <td class="px-4 py-2 text-gray-600">모든 거래에 적용</td>
+                          <td class="px-4 py-2 text-gray-600">특정 금액 이상 거래에만</td>
+                        </tr>
+                        <tr>
+                          <td class="px-4 py-2 font-medium text-gray-700">라이선스 체계</td>
+                          <td class="px-4 py-2 text-gray-600">연방 및 주 이중 규제</td>
+                          <td class="px-4 py-2 text-gray-600">중앙 집중식 (HKMA)</td>
+                          <td class="px-4 py-2 text-gray-600">중앙 집중식 + 여권 제도</td>
+                        </tr>
+                        <tr>
+                          <td class="px-4 py-2 font-medium text-gray-700">예비자산 관리</td>
+                          <td class="px-4 py-2 text-gray-600">1:1 비율 의무화</td>
+                          <td class="px-4 py-2 text-gray-600">엄격한 관리 기준</td>
+                      <td class="px-4 py-2 text-gray-600">투명한 공시 의무화</td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">4.1.2 기술적 한계로 인한 모니터링 공백</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  기존의 AML 프레임워크는 기술적 한계로 인해 여전히 모니터링 공백(Monitoring Gap)을 가지고 있습니다. 이러한 기술적 한계는 불법 행위자들이 규제를 우회할 수 있는 공간을 남겨둡니다.
+                </p>
+
+                <div class="grid md:grid-cols-3 gap-6 mb-6">
+                  <div class="bg-yellow-50 border border-yellow-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-yellow-800 mb-3">
+                      <i class="fas fa-user-secret text-yellow-600 mr-2"></i>
+                      신원 연결 문제
+                    </h5>
+                    <ul class="space-y-1 text-sm text-yellow-700">
+                      <li>• 실제 신원과 온체인 주소 연결 미비</li>
+                      <li>• 여러 익명 지갑 생성 가능</li>
+                      <li>• 믹싱 서비스로 출처 은폐</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-orange-50 border border-orange-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-orange-800 mb-3">
+                      <i class="fas fa-network-wired text-orange-600 mr-2"></i>
+                      멀티체인 추적 한계
+                    </h5>
+                    <ul class="space-y-1 text-sm text-orange-700">
+                      <li>• 크로스체인 브릿지 복잡성 증가</li>
+                      <li>• 단일 체인 분석 도구 한계</li>
+                      <li>• 통합적 추적 시스템 부재</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-red-50 border border-red-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-red-800 mb-3">
+                      <i class="fas fa-cogs text-red-600 mr-2"></i>
+                      탈중앙화 코인 규제
+                    </h5>
+                    <ul class="space-y-1 text-sm text-red-700">
+                      <li>• 중앙 집중식 통제 부재</li>
+                      <li>• AML 의무 부과 대상 불명확</li>
+                      <li>• 스마트 계약 불변성으로 인한 제한</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900">4.1.3 범죄자들의 기술적 우회 전략</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  자금세탁 행위자들은 규제 기술의 발전에 맞춰, 지속적으로 새로운 기술적 우회 전략을 개발하고 있습니다. 그들은 규제의 사각지대를 찾아내고, 기술적 취약점을 악용하여 자금세탁 활동을 수행합니다.
+                </p>
+
+                <div class="space-y-6">
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-random text-purple-600 mr-2"></i>
+                      믹싱 서비스 및 퀵스왑
+                    </h5>
+                    <p class="text-sm text-gray-700 mb-3">
+                      여러 사용자들의 자금을 한데 모아 섞은 후, 다시 각자에게 분배함으로써 자금의 출처를 흐려놓습니다. 이는 블록체인 상에서 자금의 흐름을 추적하는 것을 매우 어렵게 만듭니다.
+                    </p>
+                    <div class="bg-purple-50 p-3 rounded">
+                      <p class="text-xs text-purple-700">
+                        <strong>대응 전략:</strong> AI/ML 기반의 이상 탐지 시스템, 믹싱 서비스 패턴 인식, 입출금 거래 분석 강화
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-user-shield text-gray-600 mr-2"></i>
+                      프라이버시 코인 활용
+                    </h5>
+                    <p class="text-sm text-gray-700 mb-3">
+                      모네로(Monero), 지캐시(Zcash) 등의 프라이버시 코인은 거래 내역을 완전히 익명화하는 기술을 사용하기 때문에, 이들을 통해 자금을 이동시키면 추적이 사실상 불가능합니다.
+                    </p>
+                    <div class="bg-gray-50 p-3 rounded">
+                      <p class="text-xs text-gray-700">
+                        <strong>대응 전략:</strong> 프라이버시 코인 거래소 상장 제한, 입출금 지점 감시 강화, 국제 협력을 통한 정보 공유
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-exchange-alt text-blue-600 mr-2"></i>
+                      크로스체인 브릿지 악용
+                    </h5>
+                    <p class="text-sm text-gray-700 mb-3">
+                      자금을 여러 블록체인을 통해 빠르게 이동시켜, 추적의 복잡성을 증가시킵니다. 또한 DeFi 프로토콜의 취약점을 악용하여, 플래시 론 등을 이용한 복잡한 자금세탁 거래를 생성합니다.
+                    </p>
+                    <div class="bg-blue-50 p-3 rounded">
+                      <p class="text-xs text-blue-700">
+                        <strong>대응 전략:</strong> 멀티체인 분석 도구 개발, 크로스체인 거래 패턴 연구, DeFi 프로토콜 보안 감사 강화
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="case-studies" class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">4.2 자금세탁 리스크의 실제 사례</h3>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">4.2.1 스테이블코인을 이용한 제재 회피</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인은 제재 회피(Sanctions Evasion)에 악용될 수 있는 중대한 위험이 있습니다. 특히, 미국 등 서방 국가들의 제재를 받는 국가나 단체들은 스테이블코인을 이용하여 국제 금융 시스템을 우회하고, 자금을 조달하거나 거래를 수행할 수 있습니다.
+                </p>
+
+                <div class="bg-red-50 border border-red-200 p-6 rounded-lg mb-6">
+                  <h5 class="font-semibold text-red-800 mb-3">제재 회피의 주요 특징</h5>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">이점</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 가격 안정성으로 자산 가치 보존</li>
+                        <li>• 전 세계적인 접근성</li>
+                        <li>• 전통 금융 시스템 우회 가능</li>
+                        <li>• 빠르고 저렴한 자금 이동</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">사용 사례</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 무기 거래 자금 조달</li>
+                        <li>• 사이버 공격 자금 지원</li>
+                        <li>• 대량 살상 무기 확산 자금</li>
+                        <li>• 기타 불법 활동 자금 조달</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="insight-highlight">
+                  <h5 class="font-bold text-gray-900 mb-3">제재 회피 대응 전략</h5>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">기술적 대응</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 강력한 제재 스크리닝 시스템 구축</li>
+                        <li>• OFAC SDN 명단 실시간 모니터링</li>
+                        <li>• 블록체인 분석 도구 활용</li>
+                        <li>• 제재 대상 지갑 주소 식별 및 차단</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h6 class="font-medium text-gray-700 mb-2">국제 협력</h6>
+                      <ul class="space-y-1 text-sm text-gray-600">
+                        <li>• 제재 정보 실시간 공유</li>
+                        <li>• 새로운 회피 기법 공동 대응</li>
+                        <li>• 국제 규제 기관 협력 강화</li>
+                        <li>• 표준화된 제재 스크리닝 프로토콜</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900">4.2.2 불법 자금의 은닉 및 이동</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인은 불법 자금의 은닉 및 이동에도 널리 악용되고 있습니다. 마약 거래, 사기, 인신매매, 그리고 기타 범죄 활동으로부터 발생한 수익은 스테이블코인을 통해 빠르고 저렴하게 이동될 수 있습니다.
+                </p>
+
+                <div class="bg-white border border-gray-200 p-6 rounded-lg mb-6">
+                  <h5 class="font-semibold text-gray-800 mb-4">자금세탁 과정에서의 스테이블코인 활용</h5>
+                  <div class="grid md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                      <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
+                      </div>
+                      <h6 class="font-medium text-gray-700 mb-2">입금 (Placement)</h6>
+                      <p class="text-xs text-gray-600">불법 자금을 스테이블코인으로 전환</p>
+                    </div>
+                    <div class="text-center">
+                      <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-random text-yellow-600 text-xl"></i>
+                      </div>
+                      <h6 class="font-medium text-gray-700 mb-2">계층화 (Layering)</h6>
+                      <p class="text-xs text-gray-600">믹싱 서비스, 다중 전환, 크로스체인 이동</p>
+                    </div>
+                    <div class="text-center">
+                      <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                      </div>
+                      <h6 class="font-medium text-gray-700 mb-2">통합 (Integration)</h6>
+                      <p class="text-xs text-gray-600">합법적 사업체를 통해 현금화</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-4">
+                  <div class="bg-blue-50 border-l-4 border-blue-400 p-6">
+                    <h5 class="font-semibold text-blue-800 mb-3">
+                      <i class="fas fa-pills text-blue-600 mr-2"></i>
+                      마약 거래 자금
+                    </h5>
+                    <p class="text-sm text-blue-700 mb-2">
+                      다크웹 마켓플레이스에서의 마약 거래 수익을 스테이블코인으로 전환한 후, 믹싱 서비스를 통해 여러 번 이동시켜 출처를 은폐합니다.
+                    </p>
+                    <p class="text-xs text-blue-600">
+                      <strong>대응:</strong> 거래소의 KYC/AML 절차 강화, 믹싱 서비스 모니터링, 국제 법 집행 기관 협력
+                    </p>
+                  </div>
+
+                  <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6">
+                    <h5 class="font-semibold text-yellow-800 mb-3">
+                      <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                      사기 및 사이버 범죄
+                    </h5>
+                    <p class="text-sm text-yellow-700 mb-2">
+                      피싱, 랜섬웨어, 온라인 사기 등으로 얻은 자금을 신속하게 스테이블코인으로 전환하여 추적을 회피합니다.
+                    </p>
+                    <p class="text-xs text-yellow-600">
+                      <strong>대응:</strong> 실시간 거래 모니터링, 의심스러운 거래 자동 보고, 피해자 교육 및 인식 제고
+                    </p>
+                  </div>
+
+                  <div class="bg-red-50 border-l-4 border-red-400 p-6">
+                    <h5 class="font-semibold text-red-800 mb-3">
+                      <i class="fas fa-user-times text-red-600 mr-2"></i>
+                      인신매매 자금
+                    </h5>
+                    <p class="text-sm text-red-700 mb-2">
+                      인신매매 조직이 얻은 불법 수익을 스테이블코인을 통해 국경을 넘나들며 세탁하고, 합법적인 사업체를 통해 세탁합니다.
+                    </p>
+                    <p class="text-xs text-red-600">
+                      <strong>대응:</strong> 고위험 고객에 대한 강화된 실사, 국제 정보 공유, 법 집행 기관과의 긴밀한 협력
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="improvements" class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">4.3 개선 방향 및 제언</h3>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">4.3.1 국제 협력 및 정보 공유 강화</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인의 글로벌 특성을 고려할 때, 효과적인 AML/CFT 프레임워크를 구축하기 위해서는 <strong>국제 협력 및 정보 공유의 강화</strong>가 가장 중요한 개선 방향입니다. 현재 각국이 독자적으로 규제를 마련하고 있어, 규제의 불일치와 차익거래의 위험이 존재합니다.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                  <div class="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-blue-800 mb-3">
+                      <i class="fas fa-globe text-blue-600 mr-2"></i>
+                      국제 표준화
+                    </h5>
+                    <ul class="space-y-2 text-sm text-blue-700">
+                      <li>• FATF, IMF, BIS 등 국제기구 중심의 공통 규제 원칙 수립</li>
+                      <li>• KYC/KYT 요구사항 표준화</li>
+                      <li>• 트래블 룰 구현 기준 통일</li>
+                      <li>• 예비자산 관리 기준 국제화</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-green-50 border border-green-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-green-800 mb-3">
+                      <i class="fas fa-share-alt text-green-600 mr-2"></i>
+                      정보 공유 체계
+                    </h5>
+                    <ul class="space-y-2 text-sm text-green-700">
+                      <li>• 제재 대상자 정보 실시간 공유</li>
+                      <li>• 불법 활동 관련 지갑 주소 공유</li>
+                      <li>• 새로운 범죄 기법 정보 교환</li>
+                      <li>• 국제 규제 기관 간 협력 강화</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                  <h5 class="font-semibold text-gray-800 mb-3">구체적 협력 방안</h5>
+                  <div class="space-y-3">
+                    <div class="flex items-start">
+                      <i class="fas fa-handshake text-amber-600 mt-1 mr-3"></i>
+                      <div>
+                        <h6 class="font-medium text-gray-700">양자 및 다자간 협정</h6>
+                        <p class="text-sm text-gray-600">G20 정상회의 공동 성명, FATF 권고사항 구체화, 국가 간 MOU 체결 등을 통해 국제 협력을 구체화합니다.</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start">
+                      <i class="fas fa-flask text-purple-600 mt-1 mr-3"></i>
+                      <div>
+                        <h6 class="font-medium text-gray-700">규제 샌드박스 연계</h6>
+                        <p class="text-sm text-gray-600">각국의 규제 샌드박스 프로그램을 연계하여 새로운 기술과 규제 방식을 공동으로 테스트하고 우수 사례를 공유합니다.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">4.3.2 표준화된 컴플라이언스 기술 개발</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인의 AML/CFT 프레임워크를 효과적으로 구현하기 위해서는, <strong>표준화된 컴플라이언스 기술</strong>의 개발이 필요합니다. 현재는 각 기업이 독자적으로 기술 솔루션을 개발하거나, 다양한 벤더의 솔루션을 도입하고 있어, 상호 운용성(Interoperability)의 문제가 발생할 수 있습니다.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-cogs text-blue-600 mr-2"></i>
+                      기술 표준화 영역
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• 트래블 룰 정보 전송 프로토콜 표준화 (IVMS101)</li>
+                      <li>• 온체인 모니터링 위험 지표(Risk Indicator) 표준화</li>
+                      <li>• 블록체인 분석 위험 평가 모델 표준화</li>
+                      <li>• VASP 간 데이터 교환 형식 표준화</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-tools text-green-600 mr-2"></i>
+                      기대 효과
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• 상호 운용성 문제 해결</li>
+                      <li>• 규제의 일관성 및 예측 가능성 확보</li>
+                      <li>• 스테이블코인 사업자 준수 비용 감소</li>
+                      <li>• 규제 효율성 향상</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-8">
+                <h4 class="font-bold text-lg mb-4 text-gray-900">4.3.3 규제 기술 (RegTech)의 발전 촉진</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인의 AML/CFT 프레임워크를 구현하는 데 있어서는, <strong>규제 기술(RegTech)</strong> 의 발전이 필수적입니다. RegTech는 규제 준수를 위한 기술적 솔루션을 의미하며, 이는 스테이블코인의 복잡한 규제 환경에서 효율적이고 비용 효과적인 준수를 가능하게 합니다.
+                </p>
+
+                <div class="space-y-4">
+                  <div class="bg-purple-50 border-l-4 border-purple-400 p-6">
+                    <h5 class="font-semibold text-purple-800 mb-3">
+                      <i class="fas fa-rocket text-purple-600 mr-2"></i>
+                      규제 샌드박스 확대
+                    </h5>
+                    <p class="text-sm text-purple-700 mb-2">
+                      RegTech 스타트업들이 실제 규제 환경에서 새로운 기술을 테스트할 수 있도록 하여, 혁신적인 기술이 시장에 빠르게 도입될 수 있도록 지원합니다.
+                    </p>
+                    <ul class="text-xs text-purple-600 space-y-1">
+                      <li>• 테스트 환경 제공</li>
+                      <li>• 규제 유예 기간 부여</li>
+                      <li>• 실증 테스트 지원</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-green-50 border-l-4 border-green-400 p-6">
+                    <h5 class="font-semibold text-green-800 mb-3">
+                      <i class="fas fa-dollar-sign text-green-600 mr-2"></i>
+                      연구 개발 자금 지원
+                    </h5>
+                    <p class="text-sm text-green-700 mb-2">
+                      정부가 RegTech 연구 개발에 대한 자금 지원을 확대하여, 국내 RegTech 산업의 경쟁력을 높이고 글로벌 시장에서의 리더십을 확보합니다.
+                    </p>
+                    <ul class="text-xs text-green-600 space-y-1">
+                      <li>• 정부 연구비 지원</li>
+                      <li>• 민관 협력 프로젝트</li>
+                      <li>• 글로벌 시장 진출 지원</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-blue-50 border-l-4 border-blue-400 p-6">
+                    <h5 class="font-semibold text-blue-800 mb-3">
+                      <i class="fas fa-certificate text-blue-600 mr-2"></i>
+                      인증 제도 도입
+                    </h5>
+                    <p class="text-sm text-blue-700 mb-2">
+                      규제 기관이 RegTech 솔루션에 대한 인증 제도를 도입하여, 시장에서 신뢰할 수 있는 솔루션을 식별하고 기업의 기술 선택을 용이하게 합니다.
+                    </p>
+                    <ul class="text-xs text-blue-600 space-y-1">
+                      <li>• 품질 인증 기준 수립</li>
+                      <li>• 정기적인 평가 및 감사</li>
+                      <li>• 인증 마크 부여</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-lg mb-4 text-gray-900">4.3.4 사용자 교육 및 인식 제고</h4>
+
+                <p class="text-gray-700 mb-4 leading-relaxed">
+                  스테이블코인의 AML/CFT 프레임워크가 효과적으로 작동하기 위해서는, <strong>사용자 교육 및 인식 제고</strong>가 중요한 요소입니다. 많은 일반 사용자들은 스테이블코인이 불법 활동에 악용될 수 있다는 위험을 인식하지 못하고 있습니다.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-graduation-cap text-indigo-600 mr-2"></i>
+                      교육 내용
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• 스테이블코인의 불법 활용 위험 인식</li>
+                      <li>• KYC 절차의 필요성 및 중요성</li>
+                      <li>• 트래블 룰의 목적과 의의</li>
+                      <li>• 불법 거래에 대한 법적 처벌</li>
+                      <li>• 올바른 스테이블코인 사용 방법</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                    <h5 class="font-semibold text-gray-800 mb-3">
+                      <i class="fas fa-broadcast-tower text-pink-600 mr-2"></i>
+                      홍보 채널
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• 스테이블코인 발행인 및 거래소 웹사이트</li>
+                      <li>• 소셜 미디어 및 블로그 활용</li>
+                      <li>• 온라인 강의 및 웨비나</li>
+                      <li>• 인포그래픽 및 동영상 콘텐츠</li>
+                      <li>• 고위험 지역 맞춤형 교육 프로그램</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-6 rounded-lg mt-6">
+                  <h5 class="font-semibold text-amber-800 mb-3">기대 효과</h5>
+                  <div class="grid md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                      <i class="fas fa-shield-alt text-amber-600 text-2xl mb-2"></i>
+                      <h6 class="font-medium text-gray-700">자발적 준수</h6>
+                      <p class="text-xs text-gray-600">사용자의 자발적인 규제 준수 유도</p>
+                    </div>
+                    <div class="text-center">
+                      <i class="fas fa-eye text-amber-600 text-2xl mb-2"></i>
+                      <h6 class="font-medium text-gray-700">위험 인식</h6>
+                      <p class="text-xs text-gray-600">불법 활동 위험에 대한 인식 제고</p>
+                    </div>
+                    <div class="text-center">
+                      <i class="fas fa-heart text-amber-600 text-2xl mb-2"></i>
+                      <h6 class="font-medium text-gray-700">생태계 건전성</h6>
+                      <p class="text-xs text-gray-600">스테이블코인 생태계 전반의 건전성 향상</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <!-- Conclusion -->
+      <section id="conclusion" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-8 max-w-4xl">
+          <div class="slide">
+            <h2 class="serif text-3xl font-bold mb-8 text-gray-900">5. 결론</h2>
+
+            <div class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">5.1 주요 분석 결과 요약</h3>
+
+              <div class="insight-highlight mb-8">
+                <h4 class="font-bold text-lg mb-3 text-gray-900">종합적 분석 결과</h4>
+                <p class="text-gray-700 leading-relaxed">
+                  본 보고서는 미국의 GENIUS 법을 중심으로, 스테이블코인의 자금세탁방지(AML) 프레임워크에 대한 종합적인 법률적 및 기술적 분석을 수행했습니다. 분석 결과는 스테이블코인 규제가 법률, 기술, 정책의 복합적 상호작용 속에서 진화하고 있음을 보여줍니다.
+                </p>
+              </div>
+
+              <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                  <h4 class="font-bold text-lg mb-3 text-gray-900">
+                    <i class="fas fa-gavel text-blue-600 mr-2"></i>
+                    법률적 측면
+                  </h4>
+                  <p class="text-sm text-gray-700 mb-3">
+                    미국의 GENIUS 법은 스테이블코인 발행인을 '금융기관'으로 분류하여 기존 금융기관과 동일한 수준의 엄격한 AML/CFT 의무를 부과합니다.
+                  </p>
+                  <ul class="space-y-1 text-xs text-gray-600">
+                    <li>• 1:1 예비자산 보유 의무화</li>
+                    <li>• PPSI 제도 도입</li>
+                    <li>• BSA 적용 및 OFAC 제재 준수</li>
+                    <li>• 홍콩, EU와의 규제 차이 존재</li>
+                  </ul>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                  <h4 class="font-bold text-lg mb-3 text-gray-900">
+                    <i class="fas fa-cogs text-green-600 mr-2"></i>
+                    기술적 측면
+                  </h4>
+                  <p class="text-sm text-gray-700 mb-3">
+                    AML 프레임워크 구현은 실제 신원과 온체인 주소 연결, 멀티체인 거래 추적 등의 기술적 도전을 수반합니다.
+                  </p>
+                  <ul class="space-y-1 text-xs text-gray-600">
+                    <li>• 온체인 모니터링 및 분석 도구</li>
+                    <li>• 그래프 기술 활용</li>
+                    <li>• AI/ML 기반 리스크 감지</li>
+                    <li>• 스마트 계약 기반 컴플라이언스</li>
+                  </ul>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-6 rounded-lg">
+                  <h4 class="font-bold text-lg mb-3 text-gray-900">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                    비판적 측면
+                  </h4>
+                  <p class="text-sm text-gray-700 mb-3">
+                    기존 AML 프레임워크는 글로벌 규제 불일치, 기술적 한계, 범죄자의 우회 전략 등 세 가지 주요 문제점을 가지고 있습니다.
+                  </p>
+                  <ul class="space-y-1 text-xs text-gray-600">
+                    <li>• 규제 차익 위험</li>
+                    <li>• 모니터링 공백 존재</li>
+                    <li>• 진화하는 범죄 기법 대응 필요</li>
+                    <li>• 개인정보 보호와 균형 문제</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-12">
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">5.2 미래 전망</h3>
+
+              <p class="text-gray-700 mb-6 leading-relaxed">
+                스테이블코인의 AML 프레임워크는 앞으로도 지속적으로 진화할 것으로 전망됩니다. 법률적으로는, 미국의 GENIUS 법이 최종적으로 통과되고 시행되면, 이는 다른 국가들의 규제에도 큰 영향을 미칠 것입니다. 국제적인 규제 표준의 조화를 위한 노력이 강화될 것으로 예상되며, FATF의 권고사항이 더욱 구체화되고 강화될 가능성이 높습니다.
+              </p>
+
+              <div class="bg-white border border-gray-200 p-8 rounded-lg">
+                <h4 class="font-bold text-xl mb-6 text-gray-900 text-center">미래 전망의 주요 특징</h4>
+                <div class="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <h5 class="font-semibold text-gray-800 mb-4">
+                      <i class="fas fa-rocket text-blue-600 mr-2"></i>
+                      기술적 발전
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• AI/ML 기술 발전으로 더욱 정교한 리스크 감지</li>
+                      <li>• 영지식 증명(Zero-Knowledge Proofs) 등 프라이버시 보호 기술 활용</li>
+                      <li>• 멀티체인 분석 기술 고도화</li>
+                      <li>• 실시간 모니터링 시스템 개선</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 class="font-semibold text-gray-800 mb-4">
+                      <i class="fas fa-balance-scale text-green-600 mr-2"></i>
+                      규제 환경 변화
+                    </h5>
+                    <ul class="space-y-2 text-sm text-gray-700">
+                      <li>• 국제 규제 표준 조화 강화</li>
+                      <li>• 탈중앙화 스테이블코인에 대한 새로운 접근 방식 모색</li>
+                      <li>• CBDC 도입에 따른 규제 환경 변화</li>
+                      <li>• 규제 기술(RegTech) 산업 발전 촉진</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h5 class="font-semibold text-yellow-800 mb-3">
+                  <i class="fas fa-lightbulb text-yellow-600 mr-2"></i>
+                  중요한 과제로 남을 이슈
+                </h5>
+                <p class="text-sm text-yellow-700">
+                  완전히 탈중앙화된 스테이블코인에 대한 규제는 여전히 큰 난제로 남을 것으로 보입니다. 이에 대한 해결책으로, 인터페이스 규제나 거버넌스 토큰 규제와 같은 새로운 접근 방식이 더욱 활발히 논의될 것입니다. 또한, 중앙은행 디지털화폐(CBDC)의 도입이 스테이블코인의 역할과 규제 환경에 미치는 영향도 주요 관심사가 될 것입니다.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="serif text-2xl font-semibold mb-6 text-gray-800">5.3 최종 결론</h3>
+
+              <div class="bg-gradient-to-r from-gray-900 to-gray-700 text-white p-8 rounded-lg mb-8">
+                <h4 class="font-bold text-2xl mb-4">스테이블코인의 미래는 균형과 협력에 달려 있습니다</h4>
+                <p class="text-gray-200 leading-relaxed">
+                  스테이블코인은 디지털 금융의 미래를 이끌어갈 잠재력이 있는 동시에, 자금세탁과 같은 불법 금융 활동에 악용될 수 있는 중대한 위험을 내포하고 있습니다. 미국의 GENIUS 법을 비롯한 각국의 규제 프레임워크는 이러한 리스크를 관리하고, 스테이블코인 생태계의 건전성을 확보하기 위한 중요한 첫걸음입니다.
+                </p>
+              </div>
+
+              <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-gavel text-blue-600 text-2xl"></i>
+                  </div>
+                  <h4 class="font-bold text-gray-900 mb-2">명확한 규제</h4>
+                  <p class="text-sm text-gray-600">일관된 글로벌 규제 기준 수립을 통해 규제 차익 방지</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-cogs text-green-600 text-2xl"></i>
+                  </div>
+                  <h4 class="font-bold text-gray-900 mb-2">기술 혁신</h4>
+                  <p class="text-sm text-gray-600">규제와 기술의 선순환을 통해 효과적인 AML/CFT 구현</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-users text-purple-600 text-2xl"></i>
+                  </div>
+                  <h4 class="font-bold text-gray-900 mb-2">협력 체계</h4>
+                  <p class="text-sm text-gray-600">모든 이해관계자의 참여를 통한 건전한 생태계 구축</p>
+                </div>
+              </div>
+
+              <div class="bg-white border border-gray-200 p-8 rounded-lg">
+                <h4 class="font-bold text-xl mb-6 text-gray-900 text-center">종합적인 접근이 필요합니다</h4>
+                <p class="text-gray-700 leading-relaxed mb-6">
+                  본 보고서의 분석을 종합하면, 효과적인 스테이블코인 AML 프레임워크를 구축하기 위해서는 다음과 같은 종합적인 접근이 필요합니다.
+                </p>
+
+                <div class="space-y-4">
+                  <div class="flex items-start">
+                    <span class="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded mr-3 mt-1">1</span>
+                    <div>
+                      <h5 class="font-semibold text-gray-800">명확하고 일관된 글로벌 규제 기준 수립</h5>
+                      <p class="text-sm text-gray-600">규제 차익을 방지하고, 글로벌 사업자들의 준수 부담을 줄입니다.</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-start">
+                    <span class="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded mr-3 mt-1">2</span>
+                    <div>
+                      <h5 class="font-semibold text-gray-800">기술과 규제의 선순환 촉진</h5>
+                      <p class="text-sm text-gray-600">기술의 발전은 규제의 효율성을 높이고, 규제의 요구사항은 기술의 혁신을 촉진합니다.</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-start">
+                    <span class="bg-purple-500 text-white text-xs font-semibold px-2 py-1 rounded mr-3 mt-1">3</span>
+                    <div>
+                      <h5 class="font-semibold text-gray-800">모든 이해관계자의 참여와 협력</h5>
+                      <p class="text-sm text-gray-600">정부, 규제 기관, 기술 업체, 스테이블코인 사업자, 사용자 모두가 협력하여 건전한 생태계를 구축합니다.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-8 p-4 bg-amber-50 rounded-lg">
+                  <p class="text-amber-800 text-center font-medium">
+                    이러한 종합적인 노력을 통해, 스테이블코인은 디지털 경제의 안정적인 기반이자, 금융 포용성을 높이는 강력한 도구로 발전할 수 있을 것입니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Slide animation on scroll
+        const slides = document.querySelectorAll('.slide');
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        slides.forEach(slide => {
+            observer.observe(slide);
+        });
+
+        // Mobile TOC toggle
+        function toggleTOC() {
+            const toc = document.querySelector('.toc-fixed');
+            toc.classList.toggle('open');
+        }
+
+        // Function to close TOC
+        function closeTOC() {
+            const toc = document.querySelector('.toc-fixed');
+            toc.classList.remove('open');
+        }
+
+        // Add mobile menu button for small screens
+        if (window.innerWidth <= 1024) {
+            const mobileMenuBtn = document.createElement('button');
+            mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            mobileMenuBtn.className = 'fixed top-4 left-4 z-50 bg-white p-3 rounded-lg shadow-lg md:hidden';
+            mobileMenuBtn.id = 'mobile-menu-btn';
+            mobileMenuBtn.onclick = toggleTOC;
+            document.body.appendChild(mobileMenuBtn);
+        }
+
+        // Close TOC when clicking outside
+        document.addEventListener('click', function(event) {
+            const toc = document.querySelector('.toc-fixed');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            // Check if we are in mobile view and TOC is open
+            if (window.innerWidth <= 1024 && toc && toc.classList.contains('open')) {
+                // Check if click is outside TOC and not on mobile menu button
+                if (!toc.contains(event.target) && (!mobileMenuBtn || !mobileMenuBtn.contains(event.target))) {
+                    closeTOC();
+                }
+            }
+        });
+
+        // Close TOC when window is resized to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 1024) {
+                closeTOC();
+            }
+        });
+    </script>
+  </body>
+
+</html>
